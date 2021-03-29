@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -25,14 +26,16 @@ import com.google.android.gms.location.LocationServices;
 public class MainActivity extends Activity implements SensorEventListener {
     private ImageView imageView;
     private SensorManager sensorManager;
-    private TextView destinationDistance;
-    private EditText destinationLatitude;
-    private EditText destinationLongitude;
+    public TextView destinationDistance;
     private float currentDegree = 0f;
-    private FusedLocationProviderClient fusedLocationClient;
+    private LocationFetcher locationFetcher;
+    private Location location;
     private Button button;
-    float distance;
-    int REQUEST_CODE = 102;
+    private float distance;
+
+    private int permissionCheckAFL;
+    private int permissionCheckACL;
+    private FusedLocationProviderClient fusedLocationClient;
 
 
     @Override
@@ -40,36 +43,37 @@ public class MainActivity extends Activity implements SensorEventListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        int permissionCheckAFL = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        int permissionCheckACL = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
-        if(permissionCheckAFL != PackageManager.PERMISSION_GRANTED && permissionCheckACL != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
-        }
-
         imageView = findViewById(R.id.imageViewCompass);
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        destinationLatitude = findViewById(R.id.destinationLatitude);
-        destinationLongitude = findViewById(R.id.destinationLongitude);
         destinationDistance = findViewById(R.id.destinationDistance);
         button = findViewById(R.id.button);
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        Location destinationLocation = new Location("Destination");
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         button.setOnClickListener(v -> {
-            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-                if (location != null) {
-                    location.getLatitude();
-                    location.getLongitude();
-                    float destinationLat = Float.parseFloat(destinationLatitude.getText().toString());
-                    float destinationLon = Float.parseFloat(destinationLongitude.getText().toString());
-                    destinationLocation.setLatitude(destinationLat);
-                    destinationLocation.setLongitude(destinationLon);
-                    distance = location.distanceTo(destinationLocation);
-                }
-            });
+            openSetGeographicCoordinatesActivity();
+        });
+
+        locationFetcher = new LocationFetcher(this);
+        locationFetcher.connectGps();
+        locationFetcher.onLocationChanged(location);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        permissionCheckAFL = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        permissionCheckACL = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissionCheck();
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+            location.getLatitude();
+            location.getLongitude();
+            Location destinationLocation;
+            destinationLocation = SetGeographicCoordinatesActivity.getDestinationLocation();
+            distance = location.distanceTo(destinationLocation);
+            updateTextView(distance);
+        }
         });
     }
+
+
+
 
     @Override
     protected void onResume() {
@@ -84,12 +88,14 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(this);
+        locationFetcher.disconnectGps();
+
+
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         float degree = Math.round(event.values[0]);
-        destinationDistance.setText("Distance from the destination: " + Float.toString(distance) + "m");
 
         RotateAnimation rotateAnimation = new RotateAnimation(
                 currentDegree,
@@ -106,5 +112,28 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    private void openSetGeographicCoordinatesActivity() {
+        Intent intent = new Intent(this, SetGeographicCoordinatesActivity.class);
+        startActivity(intent);
+    }
+
+    private void permissionCheck() {
+        int REQUEST_CODE = 102;
+        if(permissionCheckAFL != PackageManager.PERMISSION_GRANTED && permissionCheckACL != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE);
+        }
+    }
+
+    private void updateTextView(final float distance) {
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                destinationDistance.setText("Distance from the destination: " + Float.toString(distance) + "m");
+                destinationDistance.invalidate();
+            }
+        });
     }
 }

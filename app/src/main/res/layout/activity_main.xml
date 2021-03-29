@@ -6,45 +6,25 @@
 
     <TextView
         android:id="@+id/destinationDistance"
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp" />
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"/>
 
     <ImageView
         android:id="@+id/imageViewCompass"
-        android:layout_width="wrap_content"
-        android:layout_height="400dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/destinationDistance"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="10dp"
         android:src="@drawable/compass_image" />
-
-    <EditText
-        android:id="@+id/destinationLatitude"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_destination_latitude"
-        android:layout_below="@+id/imageViewCompass"
-        android:background="@android:drawable/editbox_background"
-        android:layout_marginBottom="5dp"
-        android:layout_centerHorizontal="true" />
-
-    <EditText
-        android:id="@+id/destinationLongitude"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/enter_destination_longitude"
-        android:layout_below="@+id/destinationLatitude"
-        android:background="@android:drawable/editbox_background"
-        android:layout_marginBottom="10dp"
-        android:layout_centerHorizontal="true" />
 
     <Button
         android:id="@+id/button"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/destinationLongitude"
+        android:layout_below="@+id/imageViewCompass"
         android:text="@string/set_destination"
         android:layout_centerHorizontal="true" />
 

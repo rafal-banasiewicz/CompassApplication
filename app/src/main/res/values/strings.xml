@@ -3,4 +3,5 @@
     <string name="enter_destination_latitude">Enter Destination Latitude</string>
     <string name="enter_destination_longitude">Enter Destination Longitude</string>
     <string name="set_destination">SET DESTINATION</string>
+    <string name="set">SET</string>
 </resources>
